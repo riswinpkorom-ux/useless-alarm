@@ -1,1 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Useless Alarm 😴</title>
 
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #101322;
+      color: rgb(22, 7, 7);
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    .app {
+      width: 90%;
+      max-width: 450px;
+      padding: 30px;
+      background: #f3f02c;
+      border-radius: 25px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.4);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #31e619;
+    }
+
+    #clock {
+      font-size: 3rem;
+      margin: 25px 0;
+    }
+
+    #message {
+      min-height: 100px;
+      font-size: 2rem;
+      color: #c8ccef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input {
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    button {
+      margin: 8px 4px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #7567f8;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #cfbc4f;
+      transform: scale(1.03);
+    }
+
+    .sleep-btn {
+      background: #343951;
+    }
+
+    .sleep-btn:hover {
+      background: #454b65;
+    }
+
+    #status {
+      font-size: 25px;
+      margin-top: 20px;
+      color: #f10606;
+    }
+
+    .counter {
+      margin-top: 20px;
+      color: #0f0f0e;
+      font-size: 1rem;
+    }
+
+    .excuse-box {
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #34384e;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>😴 Useless Alarm</h1>
+
+  <p class="subtitle">
+    Set an alarm. We promise not to wake you.
+  </p>
+
+  <!-- Alarm -->
+  <input type="time" id="alarmTime">
+  <br>
+
+  <button onclick="setAlarm()">
+    Set Useless Alarm
+  </button>
+
+  <div id="clock">00:00:00</div>
+
+  <!-- Main excuse -->
+  <div id="message">
+    Your bed is currently winning.
+  </div>
+
+  <!-- Random excuse generator -->
+  <div class="excuse-box">
+
+    <button onclick="generateExcuse()">
+      🎲 Generate Excuse
+    </button>
+
+    <button class="sleep-btn" onclick="snooze()">
+      😴 5 More Minutes
+    </button>
+
+  </div>
+
+  <div class="counter">
+    Snoozes today: <span id="snoozeCount">0</span>
+  </div>
+
+  <div id="status"></div>
+
+</div>
+
+<script>
+
+let alarm = null;
+let alarmTriggered = false;
+let snoozeCount = 0;
+let excuseInterval = null;
+
+/*
+   RANDOM EXCUSE GENERATOR
+*/
+
+const excuses = [
+
+  "😴 You worked hard yesterday. You deserve another 5 minutes.",
+
+  "🌧️ The weather is basically asking you to stay in bed.",
+
+  "🛌 Your pillow misses you already.",
+
+  "☕ Coffee can wait. Your dreams cannot.",
+
+  "🧠 Your brain has requested a software update. Please sleep.",
+
+  "🌍 The world will survive without you for another 10 minutes.",
+
+  "🚨 WARNING: Getting out of bed may cause productivity.",
+
+  "✨ Future You can deal with this.",
+
+  "😌 You are not late. You are operating on a different schedule.",
+
+  "📅 Nothing truly important happens before 10 AM.",
+
+  "🛏️ Your bed has officially filed an emotional complaint.",
+
+  "🥱 Your eyes are clearly not ready for today's responsibilities.",
+
+  "🧸 Your blanket needs emotional support.",
+
+  "📱 Your phone battery is low. You should conserve your energy too.",
+
+  "🧪 Scientists are still researching whether waking up is actually necessary.",
+
+  "🍳 Breakfast tastes better when you're late anyway.",
+
+  "🚪 The outside world is still there. No need to visit it yet.",
+
+  "😎 Being awake is overrated.",
+
+  "💤 Your dreams haven't finished loading.",
+
+  "⏰ The alarm is only a suggestion.",
+
+  "📢 Important announcement: You are still tired.",
+
+  "🛌 Your bed has a 100% comfort rating. Why leave?",
+
+  "🧠 Your brain says: 'Let's think about getting up later.'",
+
+  "🌅 Sunrise happens every day. You don't need to witness all of them.",
+
+  "😂 If you get up now, you'll have to do things.",
+
+  "🎯 Today's goal: Successfully remain horizontal.",
+
+  "📚 You can't be productive if you're sleepy. So sleep first.",
+
+  "💡 Great ideas sometimes happen while lying in bed.",
+
+  "😇 Your future self has approved this snooze.",
+
+  "🚨 SYSTEM ERROR: Motivation not found."
+
+];
+
+
+/*
+   DISPLAY RANDOM EXCUSE
+*/
+
+function generateExcuse() {
+
+  const randomIndex =
+    Math.floor(Math.random() * excuses.length);
+
+  document.getElementById("message").textContent =
+    excuses[randomIndex];
+}
+
+
+/*
+   SET ALARM
+*/
+
+function setAlarm() {
+
+  alarm =
+    document.getElementById("alarmTime").value;
+
+  if (!alarm) {
+
+    document.getElementById("status").textContent =
+      "Please choose a time.";
+
+    return;
+  }
+
+  alarmTriggered = false;
+
+  document.getElementById("status").textContent =
+    `Alarm set for ${alarm}. Don't worry, it won't make a sound. 🤫`;
+}
+
+
+/*
+   CLOCK
+*/
+
+function updateClock() {
+
+  const now = new Date();
+
+  const hours =
+    String(now.getHours()).padStart(2, "0");
+
+  const minutes =
+    String(now.getMinutes()).padStart(2, "0");
+
+  const seconds =
+    String(now.getSeconds()).padStart(2, "0");
+
+  document.getElementById("clock").textContent =
+    `${hours}:${minutes}:${seconds}`;
+
+  const currentTime =
+    `${hours}:${minutes}`;
+
+  if (
+    alarm === currentTime &&
+    !alarmTriggered
+  ) {
+
+    triggerAlarm();
+  }
+}
+
+
+/*
+   TRIGGER SILENT ALARM
+*/
+
+function triggerAlarm() {
+
+  alarmTriggered = true;
+
+  document.getElementById("status").textContent =
+    "🚨 ALARM! (Silently judging you...)";
+
+  generateExcuse();
+
+  // Start generating a new excuse every 8 seconds
+
+  if (excuseInterval) {
+    clearInterval(excuseInterval);
+  }
+
+  excuseInterval = setInterval(
+    generateExcuse,
+    8000
+  );
+
+}
+
+
+/*
+   SNOOZE BUTTON
+*/
+
+function snooze() {
+
+  snoozeCount++;
+
+  document.getElementById("snoozeCount").textContent =
+    snoozeCount;
+
+  generateExcuse();
+
+  document.getElementById("status").textContent =
+    "😴 Fine... sleep for another 5 minutes.";
+
+}
+
+
+/*
+   START CLOCK
+*/
+
+setInterval(updateClock, 1000);
+
+updateClock();
+
+</script>
+
+</body>
+</html>
